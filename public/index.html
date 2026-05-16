@@ -26,6 +26,18 @@
           placeholder="Optional description..." 
           aria-label="Task description input"
         ></textarea>
+        <div class="task-meta">
+          <select id="taskPriority" aria-label="Task priority">
+            <option value="low">Low Priority</option>
+            <option value="medium" selected>Medium Priority</option>
+            <option value="high">High Priority</option>
+          </select>
+          <input 
+            type="date" 
+            id="taskDueDate" 
+            aria-label="Task due date"
+          >
+        </div>
         <button id="addTaskBtn" aria-label="Add new task">Add Task</button>
       </div>
 

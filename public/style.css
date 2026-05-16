@@ -48,7 +48,7 @@ header h1 {
   margin-bottom: 20px;
 }
 
-#taskTitle, #taskDescription {
+#taskTitle, #taskDescription, #taskPriority, #taskDueDate {
   padding: 12px;
   border: 2px solid #e0e0e0;
   border-radius: 6px;
@@ -57,7 +57,7 @@ header h1 {
   transition: border-color 0.3s;
 }
 
-#taskTitle:focus, #taskDescription:focus {
+#taskTitle:focus, #taskDescription:focus, #taskPriority:focus, #taskDueDate:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -67,6 +67,16 @@ header h1 {
   resize: vertical;
   min-height: 60px;
   max-height: 120px;
+}
+
+.task-meta {
+  display: flex;
+  gap: 10px;
+}
+
+#taskPriority, #taskDueDate {
+  flex: 1;
+  min-width: 0;
 }
 
 #addTaskBtn {
@@ -150,6 +160,18 @@ header h1 {
   color: #999;
 }
 
+.task-item[data-priority="high"] {
+  border-left-color: #f44336;
+}
+
+.task-item[data-priority="medium"] {
+  border-left-color: #ff9800;
+}
+
+.task-item[data-priority="low"] {
+  border-left-color: #4caf50;
+}
+
 .task-checkbox {
   margin-top: 4px;
   width: 20px;
@@ -175,6 +197,42 @@ header h1 {
   font-size: 0.9em;
   color: #666;
   word-break: break-word;
+}
+
+.task-meta-info {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: 0.85em;
+}
+
+.priority-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.8em;
+}
+
+.priority-badge.high {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.priority-badge.medium {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.priority-badge.low {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.due-date {
+  color: #666;
 }
 
 .task-actions {

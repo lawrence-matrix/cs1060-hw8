@@ -5,6 +5,8 @@ let tasks = [];
 // DOM Elements
 const taskTitle = document.getElementById('taskTitle');
 const taskDescription = document.getElementById('taskDescription');
+const taskPriority = document.getElementById('taskPriority');
+const taskDueDate = document.getElementById('taskDueDate');
 const addTaskBtn = document.getElementById('addTaskBtn');
 const taskList = document.getElementById('taskList');
 const filterBtns = document.querySelectorAll('.filter-btn');
@@ -48,6 +50,8 @@ async function fetchTasks() {
 async function addTask() {
   const title = taskTitle.value.trim();
   const description = taskDescription.value.trim();
+  const priority = taskPriority.value;
+  const dueDate = taskDueDate.value;
 
   if (!title) {
     alert('Please enter a task title');
@@ -58,13 +62,15 @@ async function addTask() {
     const response = await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description })
+      body: JSON.stringify({ title, description, priority, dueDate })
     });
 
     if (!response.ok) throw new Error('Failed to add task');
 
     taskTitle.value = '';
     taskDescription.value = '';
+    taskPriority.value = 'medium';
+    taskDueDate.value = '';
     taskTitle.focus();
     
     fetchTasks();
@@ -83,6 +89,8 @@ async function toggleTask(id, completed) {
       body: JSON.stringify({
         title: task.title,
         description: task.description,
+        priority: task.priority,
+        dueDate: task.due_date,
         completed: !completed
       })
     });
@@ -121,7 +129,7 @@ function renderTasks() {
   }
 
   taskList.innerHTML = tasks.map(task => `
-    <div class="task-item ${task.completed ? 'completed' : ''}">
+    <div class="task-item ${task.completed ? 'completed' : ''}" data-priority="${task.priority || 'medium'}">
       <input 
         type="checkbox" 
         class="task-checkbox"
@@ -132,6 +140,10 @@ function renderTasks() {
       <div class="task-content">
         <div class="task-title">${escapeHtml(task.title)}</div>
         ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
+        <div class="task-meta-info">
+          <span class="priority-badge ${task.priority || 'medium'}">${(task.priority || 'medium').toUpperCase()}</span>
+          ${task.due_date ? `<span class="due-date">📅 ${formatDate(task.due_date)}</span>` : ''}
+        </div>
       </div>
       <div class="task-actions">
         <button class="task-btn delete-btn" onclick="deleteTask(${task.id})" aria-label="Delete task">
@@ -152,6 +164,12 @@ function escapeHtml(text) {
     "'": '&#039;'
   };
   return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 // Initialize app
