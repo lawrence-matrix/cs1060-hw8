@@ -1,0 +1,10 @@
+node_modules/
+tasks.db
+*.log
+.DS_Store
+coverage/
+dist/
+build/
+.env
+.env.local
+.vercel/
