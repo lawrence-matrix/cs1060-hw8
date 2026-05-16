@@ -28,12 +28,14 @@ describe('Task Manager API', () => {
         .post('/api/tasks')
         .send({
           title: 'Test Task',
-          description: 'This is a test'
+          description: 'This is a test',
+          priority: 'high'
         });
       
       expect(res.statusCode).toBe(201);
       expect(res.body.title).toBe('Test Task');
       expect(res.body.description).toBe('This is a test');
+      expect(res.body.priority).toBe('high');
       expect(res.body.completed).toBe(false);
     });
 
@@ -58,6 +60,41 @@ describe('Task Manager API', () => {
       
       expect(res.statusCode).toBe(201);
       expect(res.body.description).toBe('');
+    });
+
+    it('should return 400 for invalid priority', async () => {
+      const res = await request(app)
+        .post('/api/tasks')
+        .send({
+          title: 'Task with invalid priority',
+          priority: 'invalid'
+        });
+      
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toBeTruthy();
+    });
+
+    it('should default to medium priority if not specified', async () => {
+      const res = await request(app)
+        .post('/api/tasks')
+        .send({
+          title: 'Task with default priority'
+        });
+      
+      expect(res.statusCode).toBe(201);
+      expect(res.body.priority).toBe('medium');
+    });
+
+    it('should accept due date', async () => {
+      const res = await request(app)
+        .post('/api/tasks')
+        .send({
+          title: 'Task with due date',
+          dueDate: '2026-05-20'
+        });
+      
+      expect(res.statusCode).toBe(201);
+      expect(res.body.dueDate).toBe('2026-05-20');
     });
   });
 
@@ -143,12 +180,14 @@ describe('Task Manager API', () => {
         .send({
           title: 'Updated',
           description: 'Updated desc',
-          completed: true
+          completed: true,
+          priority: 'high'
         });
       
       expect(updateRes.statusCode).toBe(200);
       expect(updateRes.body.title).toBe('Updated');
       expect(updateRes.body.completed).toBe(true);
+      expect(updateRes.body.priority).toBe('high');
     });
 
     it('should return 400 for invalid task ID', async () => {
@@ -157,6 +196,23 @@ describe('Task Manager API', () => {
         .send({ title: 'Update' });
       
       expect(res.statusCode).toBe(400);
+    });
+
+    it('should return 400 for invalid priority', async () => {
+      const createRes = await request(app)
+        .post('/api/tasks')
+        .send({ title: 'Test' });
+      
+      const taskId = createRes.body.id;
+      
+      const updateRes = await request(app)
+        .put(`/api/tasks/${taskId}`)
+        .send({
+          title: 'Updated',
+          priority: 'invalid'
+        });
+      
+      expect(updateRes.statusCode).toBe(400);
     });
   });
 
@@ -178,6 +234,30 @@ describe('Task Manager API', () => {
     it('should return 400 for invalid task ID', async () => {
       const res = await request(app).delete('/api/tasks/invalid');
       expect(res.statusCode).toBe(400);
+    });
+  });
+
+  describe('GET /api/tasks/priority/sorted', () => {
+    it('should return tasks sorted by priority (high first)', async () => {
+      // Create tasks with different priorities
+      await request(app)
+        .post('/api/tasks')
+        .send({ title: 'Low priority', priority: 'low' });
+      
+      await request(app)
+        .post('/api/tasks')
+        .send({ title: 'High priority', priority: 'high' });
+      
+      await request(app)
+        .post('/api/tasks')
+        .send({ title: 'Medium priority', priority: 'medium' });
+      
+      const res = await request(app).get('/api/tasks/priority/sorted');
+      expect(res.statusCode).toBe(200);
+      expect(res.body.length).toBe(3);
+      expect(res.body[0].priority).toBe('high');
+      expect(res.body[1].priority).toBe('medium');
+      expect(res.body[2].priority).toBe('low');
     });
   });
 });

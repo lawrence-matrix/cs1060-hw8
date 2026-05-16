@@ -39,36 +39,61 @@ app.get('/api/tasks/status/:status', (req, res) => {
   });
 });
 
+// GET tasks sorted by priority
+app.get('/api/tasks/priority/sorted', (req, res) => {
+  db.getTasksByPriority((err, tasks) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(tasks);
+  });
+});
+
 // POST create new task
 app.post('/api/tasks', (req, res) => {
-  const { title, description } = req.body;
+  const { title, description, priority = 'medium', dueDate = null } = req.body;
   
   if (!title || title.trim() === '') {
     return res.status(400).json({ error: 'Title is required' });
   }
   
-  db.createTask(title, description || '', (err, taskId) => {
+  if (!['low', 'medium', 'high'].includes(priority)) {
+    return res.status(400).json({ error: 'Invalid priority' });
+  }
+  
+  db.createTask(title, description || '', priority, dueDate, (err, taskId) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    res.status(201).json({ id: taskId, title, description: description || '', completed: false });
+    res.status(201).json({ 
+      id: taskId, 
+      title, 
+      description: description || '', 
+      priority,
+      dueDate,
+      completed: false 
+    });
   });
 });
 
 // PUT update task
 app.put('/api/tasks/:id', (req, res) => {
-  const { title, description, completed } = req.body;
+  const { title, description, completed, priority = 'medium', dueDate = null } = req.body;
   const taskId = parseInt(req.params.id);
   
   if (!taskId) {
     return res.status(400).json({ error: 'Invalid task ID' });
   }
   
-  db.updateTask(taskId, title, description, completed, (err) => {
+  if (!['low', 'medium', 'high'].includes(priority)) {
+    return res.status(400).json({ error: 'Invalid priority' });
+  }
+  
+  db.updateTask(taskId, title, description, completed, priority, dueDate, (err) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    res.json({ id: taskId, title, description, completed });
+    res.json({ id: taskId, title, description, completed, priority, dueDate });
   });
 });
 

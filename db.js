@@ -13,6 +13,8 @@ function init() {
         title TEXT NOT NULL,
         description TEXT,
         completed INTEGER DEFAULT 0,
+        priority TEXT DEFAULT 'medium' CHECK(priority IN ('low', 'medium', 'high')),
+        due_date DATE,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
@@ -43,9 +45,9 @@ function getTasksByStatus(status, callback) {
 }
 
 // Create new task
-function createTask(title, description, callback) {
-  const stmt = db.prepare('INSERT INTO tasks (title, description) VALUES (?, ?)');
-  stmt.run(title, description, function(err) {
+function createTask(title, description, priority = 'medium', dueDate = null, callback) {
+  const stmt = db.prepare('INSERT INTO tasks (title, description, priority, due_date) VALUES (?, ?, ?, ?)');
+  stmt.run(title, description, priority, dueDate, function(err) {
     if (err) {
       callback(err);
     } else {
@@ -56,9 +58,9 @@ function createTask(title, description, callback) {
 }
 
 // Update task
-function updateTask(id, title, description, completed, callback) {
-  const stmt = db.prepare('UPDATE tasks SET title = ?, description = ?, completed = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
-  stmt.run(title || '', description || '', completed ? 1 : 0, id, function(err) {
+function updateTask(id, title, description, completed, priority = 'medium', dueDate = null, callback) {
+  const stmt = db.prepare('UPDATE tasks SET title = ?, description = ?, completed = ?, priority = ?, due_date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+  stmt.run(title || '', description || '', completed ? 1 : 0, priority, dueDate, id, function(err) {
     callback(err);
   });
   stmt.finalize();
@@ -73,10 +75,19 @@ function deleteTask(id, callback) {
   stmt.finalize();
 }
 
+// Get tasks sorted by priority
+function getTasksByPriority(callback) {
+  const priorityOrder = { 'high': 1, 'medium': 2, 'low': 3 };
+  db.all('SELECT * FROM tasks ORDER BY CASE WHEN priority = \'high\' THEN 1 WHEN priority = \'medium\' THEN 2 ELSE 3 END, created_at DESC', (err, rows) => {
+    callback(err, rows || []);
+  });
+}
+
 module.exports = {
   init,
   getAllTasks,
   getTasksByStatus,
+  getTasksByPriority,
   createTask,
   updateTask,
   deleteTask,
