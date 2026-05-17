@@ -145,7 +145,7 @@ describe('Task Manager API', () => {
       const res = await request(app).get('/api/tasks/status/incomplete');
       expect(res.statusCode).toBe(200);
       expect(res.body.length).toBe(1);
-      expect(res.body[0].completed).toBe(false);
+      expect(res.body[0].completed).toBeFalsy(); // SQLite returns 0, not false
     });
 
     it('should filter completed tasks', async () => {
